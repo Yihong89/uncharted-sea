@@ -237,36 +237,38 @@ export class MapScene extends Phaser.Scene {
 
   // ---- 渲染：海图 ----
   private makeSea() {
+    // 羊皮纸海（复古海图底色）
     const g = this.add.graphics().setDepth(-10);
-    // 深海底色
-    g.fillStyle(0x0a3a5a, 1);
+    g.fillStyle(0xcfe0d8, 1); // 浅海纸色
     g.fillRect(0, 0, MAP_W, MAP_H);
-    // 经纬网（航海图感）
-    g.lineStyle(1, 0x2a5a7a, 0.22);
-    for (let gx = 0; gx < MAP_W; gx += 100) {
+    // 经纬网（淡线）
+    g.lineStyle(1, 0x8a9a8a, 0.2);
+    for (let gx = 0; gx < MAP_W; gx += 120) {
       g.beginPath();
       g.moveTo(gx, 0);
       g.lineTo(gx, MAP_H);
       g.strokePath();
     }
-    for (let gy = 0; gy < MAP_H; gy += 100) {
+    for (let gy = 0; gy < MAP_H; gy += 120) {
       g.beginPath();
       g.moveTo(0, gy);
       g.lineTo(MAP_W, gy);
       g.strokePath();
     }
+    // 罗盘风线
+    SeaLand.drawOceanDecoration(g, MAP_W, MAP_H);
   }
 
-  /** 用公域 Natural Earth 数据渲染真实东南亚轮廓（航海图风：浅陆 + 海岸线） */
+  /** 用公域 Natural Earth 数据渲染真实东亚-东南亚轮廓（复古航海图风） */
   private drawRealLand() {
     const json = this.cache.json.get("sea-land") as object;
     const seaLand = new SeaLand(json, MAP_W, MAP_H);
     const g = this.add.graphics().setDepth(-9);
-    // 先铺海（若 SEA bbox 未铺满，深蓝兜底）
-    g.fillStyle(0x0a3a5a, 1);
-    g.fillRect(0, 0, MAP_W, MAP_H);
-    // 陆地填充 + 海岸线
-    seaLand.draw(g, 0x2c5630, 0x5a9360);
+    seaLand.draw(g, {
+      parchment: 0xd8c79a,
+      coast: 0x7a6a3a,
+      inland: 0x9a7a4a,
+    });
     console.log(`SeaLand: 渲染 ${seaLand.polygonCount} 个陆地多边形`);
   }
 
