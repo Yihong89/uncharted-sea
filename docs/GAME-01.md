@@ -1,21 +1,27 @@
 # The Uncharted Sea — Gameplay & Engine Requirements (v0.1)
 
 > The **first game** of the Saga2D engine (M3 "game-driven" sample).
-> Goal: a naval-cast adventure with a **balanced triple** of **action + story + multi-character voice**,
-> end-to-end validating Saga2D's ActionLayer / NarrativeLayer / VoiceLayer interfaces.
+> Goal: a **trade/story-driven** naval-cast adventure that also delivers **attractive combat**
+> — barrage naval skirmishes + rare **KOF-style boarding duels** as high points.
+>
+> ⚠️ **See the latest design**: [`CORE-GAMEPLAY.md`](CORE-GAMEPLAY.md) is the authoritative,
+> evolving blueprint (trade↔combat↔story loop). GAME-01 keeps the roster / params / layer-interface notes.
 
 ---
 
 ## 0. One-Line Positioning
 
-> Sail a ship through vast uncharted seas, trigger sea events (random / semi-random),
-> recruit and bond with crew members whose voices are intentionally distinct, and let each
-> choice steer your course — **until you reach your ending**.
+> Run a trading firm across uncharted seas — buy low / sell high, escort convoys, invest in routes.
+> On the way, weather storms, pirates, and story characters; when ships collide, **board and win a
+> KOF-style 1v1 duel** that decides your cargo, reputation, and story thread — until you reach your ending.
 
 - Working title: **The Uncharted Sea**
-- Genre: naval adventure (free exploration + cannon naval combat + cast story + branching endings)
+- Genre: naval adventure (**trade & story driven**; barrage naval combat + **limited-time boarding duels** + cast story + branching endings)
 - Platform: Web (GitHub Pages, pure static)
 - Engine: Saga2D (its first validation case)
+
+> Authoritative evolving design: [`CORE-GAMEPLAY.md`](CORE-GAMEPLAY.md).
+
 
 ---
 
