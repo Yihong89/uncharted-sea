@@ -1,28 +1,31 @@
-# @saga2d/verify — 双模式海战最小 demo（M1）
+# @saga2d/verify — Dual-Mode Naval Demo (M1)
 
-验证 Saga2D 引擎"最小链"能跑：**Phaser 渲染 + matter 物理 + Saga2D core 引擎集成 + 可构建静态产物**。
+Validates that the Saga2D engine "minimal chain" runs: **Phaser rendering + matter physics + Saga2D core engine integration + buildable static output**.
 
-## 运行
+Deployed live at: https://yihong89.github.io/uncharted-sea/
+
+## Run
 
 ```bash
 pnpm install
-pnpm dev         # 本地开发，浏览器打开 Vite 提示的地址
-pnpm build       # 产出 dist/（可直接部署 GitHub Pages）
+pnpm dev         # local dev — open the Vite-printed URL
+pnpm build       # output dist/ (deployable to GitHub Pages)
 ```
 
-## 玩法（双模式）
+## Play (dual-mode)
 
-- **模式A · 航行**（俯视海面）：`W/A/S/D` 让船在整屏海面上自由上下左右移动。
-- **模式B · 发射**（侧面海）：按 `空格` 或 `Enter` 进入侧面海视角；
-  `↑/↓` 调整炮口角度，`空格` 发射炮弹——炮弹划出**明显的抛物线弧线**（先升后降），命中移动的目标小船会显示"命中!"并写入 localStorage。
-  `BACKSPACE` 或 `ESC` 返回航行模式。
+- **Mode A · Sail** (top-down sea): `W/A/S/D` moves the ship freely over a full sea view.
+- **Mode B · Fire** (side-view sea): press `Space` or `Enter` to switch to the side-view sea;
+  `↑/↓` adjusts the cannon angle, `Space` fires a projectile showing a **clear parabolic arc** (rises then falls);
+  hitting a moving target ship shows "命中!" and writes to localStorage.
+  `BACKSPACE` or `ESC` returns to sail mode.
 
-## 引擎集成点
+## Engine integration points
 
-- 用 `@saga2d/core` 的 `Engine`/`Scene`/`EventBus`/`Save` 启动并跑核心链路。
-- 渲染/物理用 Phaser（matter）。未来由 Saga2D 的 `ActionLayer` 包装成 `getBody/applyImpulse` 等接口。
-- 本 demo 是纯静态、可构建、可部署（无后端、无外部资源，全部程序化贴图）。
+- Boots and runs the core chain with `@saga2d/core`'s `Engine` / `Scene` / `EventBus` / `Save`.
+- Rendering/physics use Phaser (matter). Later the Saga2D `ActionLayer` will wrap this into `getBody` / `applyImpulse`-style interfaces.
+- This demo is pure-static, buildable, deployable (no backend, no external assets — all procedural textures).
 
-## 说明
+## Notes
 
-`dist/` 是构建产物，可用任意静态服务器（`python -m http.server`）或直接部署到 GitHub Pages 查看。
+`dist/` is the build output; serve it with any static server (`python -m http.server`) or deploy straight to GitHub Pages.

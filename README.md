@@ -1,86 +1,91 @@
 # Saga2D
 
-> **Saga2D** — 一个站在成熟巨人肩膀上、力求通用的 HTML5 2D 游戏引擎。
-> 命名寓意：「Saga（传奇/长篇叙事）+ 2D」；面向**动作 + 剧情叙事 + 多角色语音**方向深度定制。
+> **Saga2D** — a general-purpose HTML5 2D game engine built on the shoulders of mature components.
+> The name blends "Saga" (long-form narrative) with "2D". It is deeply tailored toward **action + narrative storytelling + multi-voice dialogue**.
 
-Saga2D 不重造轮子，而是把业界成熟组件**整合成一套统一、可插拔、可复用的 2D 游戏引擎**，并针对「**动作 + 剧情叙事 + 多角色语音**」这一充满原创空间的方向做深度定制，最终**开源造福后人**。
+Saga2D does not reinvent wheels; it **integrates proven components into one unified, pluggable, reusable 2D engine**, customized for the creative space of **action + narrative + multi-character voice**, and is ultimately meant to be **open-source for future developers**.
 
-这是一个**工程蓝图文档**的锚点文件；架构与规范详见 [`docs/DESIGN.md`](docs/DESIGN.md)。
-
----
-
-## 一句话定位
-
-> 取代"每个项目反复手写渲染/物理/剧情粘合代码"——
-> 用一个 **Adapter 可替换 + Core 稳定 + Layer 可插拔** 的统一引擎，让「写一个带对话和战斗的游戏」变成一份声明式配置。
-
-## 核心信念
-
-1. **不重造底层轮子**：渲染、物理、叙事、TTS 都站在成熟组件上（MIT/开源）。
-2. **通用而不失控**：引擎核心通用；动作/剧情/语音为可插拔上层。
-3. **游戏驱动**：每一个引擎能力都由一个真实做出来的游戏验证，避免"永远搭框架"。
-4. **造福后人**：稳定的 API、清晰的模块、可跑的 demo、能讲清的设计文档。
+This file is the anchor of the engineering blueprint. Architecture and specs live in [`docs/DESIGN.md`](docs/DESIGN.md).
 
 ---
 
-## 技术选型（已定）
+## One-Line Positioning
 
-| 层 | 选择 | 理由 / 验证 |
-|----|------|------------|
-| 引擎/渲染底座 | **Phaser**（40k★，MIT） | 动作/场景/渲染内置，社区最大，纯静态可部署 |
-| 物理 | **matter-js**（18k★，MIT） | 2D 刚体物理标准，matter 投掷/弹弓玩法契合 |
-| 叙事脚本 | **ink / inkjs**（官方 web 支持） | 交互叙事语言，分支/变量/事件触发，纯浏览器可跑 |
-| 语音 | **独立自研 VoiceLayer**（参考 `dsh-voice-core` 的思路，不复用其代码） | dsh-voice-core 是 DSH 专属库，接口/上下文无法平移到游戏引擎；引擎自建**依赖无关**语音层，仅借鉴其成熟思路 |
-| 音频合成 | WebAudio + Qwen3-TTS（本地，参考音色克隆） | 已在 dsh-voice-core 跑通 |
-| 部署 | **GitHub Pages（纯静态、无后端）** | 全组件静态可用 |
-| 语言/工程 | **TypeScript + pnpm mono-repo** | 类型安全适合开源；core/action/narrative/voice 分包 |
+> Replace the tedious per-project wiring of render / physics / narrative glue —
+> with a single engine whose **Adapter (swappable) + Core (stable) + Layer (pluggable)** layers turn "writing a game with dialogue and combat" into declarative configuration.
 
-> ⚠️ **部署硬约束（重要）**：目标纯静态托管，故**禁止需要后端的实时云端调用**。
-> 语音遵循既定边界：本地 TTS 只能预生成或局域网内用；公开部署走**预生成音频** 或 **浏览器内置 TTS** 兜底。
+## Core Beliefs
+
+1. **Don't reinvent the bottom layer** — rendering, physics, narrative, and TTS all stand on mature components (MIT / open-source).
+2. **General without losing control** — the core is generic; action / narrative / voice are pluggable upper layers.
+3. **Game-driven** — every engine capability is validated by a real, shipped game, to avoid "building endless frameworks".
+4. **For future developers** — stable APIs, clear modules, runnable demos, and an explainable design document.
 
 ---
 
-## 架构一览（顶层）
+## Tech Stack (Decided)
+
+| Layer | Choice | Rationale / Status |
+|-------|--------|--------------------|
+| Engine / render base | **Phaser** (40k★, MIT) | Scene / action / rendering built-in; largest community; pure-static deployable |
+| Physics | **matter-js** (18k★, MIT) | 2D rigid-body standard; matches thrown / slingshot gameplay |
+| Narrative | **ink / inkjs** (official web support) | Interactive narrative language with branches / vars / events; runs in pure browsers |
+| Voice | **self-built VoiceLayer** (references `dsh-voice-core` ideas, not its code) | dsh-voice-core is DSH-specific (interface/context can't port); we build a **dependency-agnostic** voice layer borrowing only its proven patterns |
+| Audio synthesis | WebAudio + Qwen3-TTS (local, reference-voice cloning) | already proven in dsh-voice-core |
+| Deployment | **GitHub Pages (pure static, no backend)** | all components work statically |
+| Language / build | **TypeScript + pnpm monorepo** | type-safe, fits open source; split into core/action/narrative/voice |
+
+> ⚠️ **Deployment hard constraint**: target is pure-static hosting, so **no backend-requiring real-time cloud calls**. Voice follows the established boundary: local TTS only for pre-generation or LAN use; public deployment uses **pre-generated audio** or **browser built-in TTS** fallback.
+
+---
+
+## Architecture Overview
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
-│                     Saga2D（通用引擎）                        │
+│                     Saga2D (general engine)                   │
 ├───────────────────────────────────────────────────────────────┤
-│ 上层 · Layer 可插拔包（按游戏按需）                             │
-│   ActionLayer   动作/战斗/物理手感                              │
-│   NarrativeLayer 剧情/分支/角色/事件（基于 ink/inkjs）          │
-│   VoiceLayer    多角色TTS/字幕/演出（独立自研，参照 dsh-voice-core 思路）│
+│  Upper · Pluggable Layers (per-game, on demand)               │
+│   ActionLayer     action / combat / physics feel              │
+│   NarrativeLayer  story / branches / chars / events (ink)     │
+│   VoiceLayer      multi-char TTS / subtitles / staging        │
 ├───────────────────────────────────────────────────────────────┤
-│ 中层 · Core（稳定骨架）                                        │
-│   Scene / Entity-Component / Input / Camera / 时间循环          │
-│   / 事件总线 / 存档 / 资源加载                                  │
+│  Core · Stable Skeleton                                       │
+│   Scene / Entity-Component / Input / Camera / game loop       │
+│   / event bus / save / asset loading                          │
 ├───────────────────────────────────────────────────────────────┤
-│ 底层 · Adapter（可替换，不强绑定）                              │
-│   Render=Phaser | Physics=matter-js | Narrative=inkjs          │
-│   Audio=WebAudio+TTS(自研 VoiceLayer)                           │
+│  Adapter · Swappable (not tightly bound)                      │
+│   Render=Phaser | Physics=matter-js | Narrative=inkjs         │
+│   Audio=WebAudio+TTS (self-built VoiceLayer)                  │
 └───────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 状态
+## Status
 
-- [x] 技术选型调研（Phaser / matter-js / ink / dsh-voice-core）
-- [x] 架构定调（Adapter-Core-Layer）
-- [x] 设计文档初稿（`docs/DESIGN.md`）
-- [x] 第一个游戏方向：**《未知海域 The Uncharted Sea》**（航海群像，见 `docs/GAME-01.md`）
-- [ ] 第一个「游戏驱动」验证项目（M1/M2）
-- [ ] 引擎骨架落地
-
----
-
-## 关联（已在工作区的既有基建与他人项目）
-
-- `dsh-voice-core` — **DSH 专属共享语音库**：接口/上下文绑定 DSH，无法直接复用于引擎。
-  但它沉淀了成熟**思路**（音色目录 `styles`、fetch WAV→`<audio>` 顺序播放队列、先显示文字再朗读、本地 Qwen 代理）→ 引擎 **VoiceLayer 独立自研时借鉴**这些做法。
-- `dsh-sister` — DSH 侧 TTS 服务宿主（`tts_service.py`，监听 `127.0.0.1:3091`）→ 引擎的开发期/局域网内本地语音来源选项之一。
-- `boomerang-ninja-demo.html` — 动作/粒子/场景的程序化 Canvas 验证 → 可用于理念参考（引擎视觉层走 Phaser，非复用此实现）。
+- [x] Tech-stack research (Phaser / matter-js / ink / dsh-voice-core)
+- [x] Architecture decision (Adapter-Core-Layer)
+- [x] Design document draft (`docs/DESIGN.md`)
+- [x] First game direction: **The Uncharted Sea** (naval cast adventure, see `docs/GAME-01.md`)
+- [x] M1 engine skeleton + dual-mode naval demo (`packages/core`, `packages/verify`)
+- [ ] M2 VoiceLayer v1
+- [ ] M3 first playable game
 
 ---
 
-*文档随引擎演进持续维护。*
+## Related (existing infra / projects in the workspace)
+
+- `dsh-voice-core` — **DSH-specific shared voice library**: DSH-bound interface cannot be reused by the engine. It does hold proven **ideas** (voice `styles` registry, fetch WAV→`<audio>` sequential playback queue, show-text-then-speak, local Qwen proxy) that the engine's **VoiceLayer** borrows when built independently.
+- `dsh-sister` — DSH-side TTS host (`tts_service.py`, listens on `127.0.0.1:3091`) → a local-voice source option during development / on-LAN.
+- `boomerang-ninja-demo.html` — procedural Canvas validation of action / particles / scenes → can inform design direction (engine's visual layer uses Phaser, not this implementation).
+
+---
+
+## Docs
+
+- [`docs/DESIGN.md`](docs/DESIGN.md) — engine design document
+- [`docs/GAME-01.md`](docs/GAME-01.md) — first game (The Uncharted Sea) gameplay & requirements
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — GitHub Pages deployment guide
+
+*Docs evolve with the engine.*

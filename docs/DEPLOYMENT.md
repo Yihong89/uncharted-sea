@@ -1,75 +1,78 @@
-# Saga2D — GitHub Pages 部署说明
+# Saga2D — GitHub Pages Deployment Guide
 
-> 回答的核心问题：**pnpm monorepo + TypeScript + Phaser/matter/ink 的架构，能不能放到 GitHub Pages 上展示？**
+> Answers the core question: **can the pnpm monorepo + TypeScript + Phaser/matter/ink architecture be shown on GitHub Pages?**
 
-## 结论
+## Conclusion
 
-**能。** 但有个关键前提：GitHub Pages 是**纯静态托管（只有 HTML/JS/CSS）**，
-所以你不能把整个 monorepo 的**源码**直接堆上去，而要把**构建产物（`dist/`）**部署上去。
+**Yes.** Key premise: GitHub Pages is **pure-static hosting (HTML/JS/CSS only)**,
+so you must NOT dump the monorepo's **source** onto it — you deploy the **build output (`dist/`)**.
 
 ```
-monorepo 源码 (pnpm + TS + Phaser/matter/ink)
-        │  构建 (Vite/Rollup 打包)
+monorepo source (pnpm + TS + Phaser/matter/ink)
+        │  build (Vite/Rollup bundle)
         ▼
- dist/ 产物 (纯 html + 打包后的 single js + assets)   ← 这才是 GitHub Pages 能跑的
+ dist/ output (pure html + bundled single js + assets)   ← what GitHub Pages can serve
 ```
 
 ---
 
-## 为什么不建议"把 node 架构原样放 Pages"
+## Why NOT to put the node architecture on Pages as-is
 
-浏览器**不认识** TypeScript 和裸 `import`（尤其 monorepo 里 `@saga2d/*` 这种 workspace 引用），
-也不运行 Node。直接把源码或整个 workspace 放 Pages 会 404 / 无法运行。
+Browsers don't run TypeScript or bare `import` (especially workspace refs like `@saga2d/*` in a
+monorepo), and they don't run Node. Putting raw source or the whole workspace on Pages would
+404 / fail to run.
 
-**正确路径：用打包工具（Vite 最契合 Phaser/Web 生态）把"游戏入口"构建成单一静态站点，发布那个 `dist/`。**
+**Correct path:** use a bundler (**Vite**, most fitting for Phaser/Web) to build the game entry
+into a single static site, and publish that `dist/`.
 
 ---
 
-## 推荐部署结构（Vite + Pages）
+## Recommended Deploy Layout (Vite + Pages)
 
 ```
 saga2d/
 ├─ packages/
-│  ├─ core/            # 引擎核心（编译为库）
-│  ├─ layer-action/    # 动作层
+│  ├─ core/            # engine core (compiled as a library)
+│  ├─ layer-action/    # action layer
 │  ├─ narrative/voice/ # …
-│  └─ verify/          # ★ 最小验证示例（是"可部署入口"）
+│  └─ verify/          # ★ minimal-verification sample (a "deployable entry")
 └─ games/
-   └─ uncharted-sea/   # ★ 最终游戏（自身可构建为 Pages 站点）
+   └─ uncharted-sea/   # ★ the final game (itself buildable into a Pages site)
 ```
 
-- **`verify/`**（M1 现在要做的）与 **`games/uncharted-sea`**（后续）都是**独立的 Vite 应用**，
-  各自能 `vite build` 出 `dist/`。
-- GitHub Pages 用 **`gh-pages` 分支** 或 **GitHub Actions** 把某个 `games/xxx/dist/` 发布为站点。
+- **`verify/`** (M1) and **`games/uncharted-sea`** (later) are each **independent Vite apps**,
+  each able to `vite build` into `dist/`.
+- GitHub Pages uses **`gh-pages` branch** or **GitHub Actions** to publish some `games/xxx/dist/` as the site.
 
-> 说明：`core` 等引擎包是**库**（被打包进 verify/game），本身不直接"上 Pages"，
-> 但 verify/game 构建时会把它一起打进 `dist/`。
-
----
-
-## M1（最小验证）的可部署性
-
-我们会把 `packages/verify` 做成一个 **Vite 应用**：
-- `pnpm dev` → 本地开发（浏览器能看到 Phaser 画布动起来）
-- `pnpm build` → 产出 `packages/verify/dist/`
-- 该 `dist/` 推 GitHub Pages → 即可在线展示出"引擎最小链能跑"
-
-这样从 M1 起，架构每一步都是"**可构建、可部署、可展示**"的，而不是只能本地看。
+> Note: engine packages like `core` are **libraries** (bundled into verify/game); they don't go
+> on Pages themselves, but verify/game's build packs them into `dist/`.
 
 ---
 
-## 与"本地 TTS / Mac mini"的关系
+## M1 (minimal verification) deployability
 
-- **部署版（Pages）**：纯静态 → 无法访问本地 `127.0.0.1` TTS。
-  语音在部署版走 **pregen（预生成音频）** 或 **浏览器 TTS 兜底**（见 `DESIGN.md` §4.3）。
-- **开发期（本地）**：可连 Mac mini 的 Qwen TTS 实时。
-- 部署与开发期语音行为不同，属于**预期设计**，不是 bug。
+We made `packages/verify` a **Vite app**:
+- `pnpm dev` → local dev (Phaser canvas animates in the browser)
+- `pnpm build` → outputs `packages/verify/dist/`
+- that `dist/` pushed to GitHub Pages → shows live that "the engine minimal chain runs"
+
+So from M1 onward every architecture step is "**buildable / deployable / viewable**", not local-only.
 
 ---
 
-## 具体何时在仓库中启用
+## Relation to "local TTS / Mac mini"
 
-暂不在本 monorepo 手动加 `.github/workflows` 部署流水线（等第一个可构建的 verify/game 出来，
-再用 GitHub Actions 自动构建并发布）。现阶段先把**构建产物能力**搭对。
+- **Deployed (Pages)**: pure static → cannot reach local `127.0.0.1` TTS.
+  Voice on the deployed build runs **pregen (pre-generated audio)** or **browser TTS fallback** (see `DESIGN.md` §4.3).
+- **Dev (local)**: may connect to Mac mini Qwen TTS real-time.
+- Deployed vs dev voice behavior differs — that's expected design, not a bug.
 
-*随引擎与游戏演进更新。*
+---
+
+## When to enable in the repo
+
+We won't add `.github/workflows` deploy pipeline by hand in this monorepo yet (until a buildable
+verify/game exists); then we'll use GitHub Actions to auto-build & publish. For now, get the
+**build-output capability** right.
+
+*Updated as the engine and games evolve.*

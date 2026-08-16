@@ -1,168 +1,169 @@
-# 未知海域 The Uncharted Sea — 玩法与引擎需求方案（v0.1）
+# The Uncharted Sea — Gameplay & Engine Requirements (v0.1)
 
-> 引擎 Saga2D 的**第一个游戏**（M3「游戏驱动」样板）。
-> 目标：一个**动作 + 剧情 + 多角色语音 三均衡**的航海群像冒险，
-> 端到端验证 Saga2D 的 ActionLayer / NarrativeLayer / VoiceLayer 三层接口。
-
----
-
-## 0. 一句话定位
-
-> 驾一艘船自由探索广袤未知海域，随机/半随机触发海上事件，
-> 招募与羁绊各具声线反差的船员，在一次次抉择中决定航向——**直至抵达你的结局**。
-
-- 工作名：**未知海域 The Uncharted Sea**
-- 类型：航海冒险（自由探索 + 舰炮海战 + 群像剧情 + 抉择结局）
-- 平台：Web（GitHub Pages 纯静态）
-- 引擎：Saga2D（本轮是其首个验证用例）
+> The **first game** of the Saga2D engine (M3 "game-driven" sample).
+> Goal: a naval-cast adventure with a **balanced triple** of **action + story + multi-character voice**,
+> end-to-end validating Saga2D's ActionLayer / NarrativeLayer / VoiceLayer interfaces.
 
 ---
 
-## 1. 三均衡设计目标（引擎验收维度）
+## 0. One-Line Positioning
 
-| 维度 | 设计形态 | 验证引擎层 |
-|------|---------|-----------|
-| **动作** | 舰炮抛物线弹道海战（重物理）+ 轻登船 | ActionLayer / matter-js |
-| **剧情** | 自由探索触发事件、抉择影响走向与多结局 | NarrativeLayer / ink |
-| **语音** | 主团四位船员 + 各敌手，声线反差独白/对话 | VoiceLayer（自研） |
+> Sail a ship through vast uncharted seas, trigger sea events (random / semi-random),
+> recruit and bond with crew members whose voices are intentionally distinct, and let each
+> choice steer your course — **until you reach your ending**.
 
-> 每一项都必须真实出现在首个可玩 demo 中，作为引擎接口的"需求来源"。
+- Working title: **The Uncharted Sea**
+- Genre: naval adventure (free exploration + cannon naval combat + cast story + branching endings)
+- Platform: Web (GitHub Pages, pure static)
+- Engine: Saga2D (its first validation case)
 
 ---
 
-## 2. 核心玩法循环
+## 1. Balanced Triple (engine acceptance dimensions)
+
+| Dimension | Design form | Validates engine layer |
+|-----------|-------------|------------------------|
+| **Action** | cannon parabolic-ballistics naval combat (physics-heavy) + light boarding | ActionLayer / matter-js |
+| **Story** | free-exploration triggered events; choices shape direction & multiple endings | NarrativeLayer / ink |
+| **Voice** | main crew + rivals, contrasting voices in monologues/dialogue | VoiceLayer (self-built) |
+
+> Each item must appear in the first playable demo as the "requirement source" for engine interfaces.
+
+---
+
+## 2. Core Gameplay Loop
 
 ```
-出海航行(管理风向/补给/航道)
+Sail the sea (manage wind / supplies / course)
    │
    ▼
-遭遇随机事件 ▸ 海战 ▸ 风暴 ▸ 商队 ▸ 遗迹 ▸ 神秘岛
-   │                            │
-   ▼                            ▼
-战斗(弹道)/抉择(影响走向)     招募船员 / 触发羁绊支线
-   │                            │
-   ▼ ─────────────┘
-船员成长 + 势力/声望/羁绊变化
+Random events ▸ battle ▸ storm ▸ merchants ▸ ruins ▸ mystery island
+   │                                   │
+   ▼                                   ▼
+combat(box-ballistics)/choice(shape)  recruit crew / trigger bond side-quests
+   │                                   │
+   ▼ ────────────────────────┘
+crew growth + faction/reputation/bond change
    │
    ▼
-通往不同结局（取决于全局抉择积累）
+leads to different endings (depends on accumulated global choices)
 ```
 
 ---
 
-## 3. 动作层：舰炮海战（重物理）
+## 3. Action Layer: Naval Combat (physics-heavy)
 
-- **核心**：舰炮以 **matter 抛物线弹道** 发射，考虑风速/重力/舰体仰角。
-- 碰撞命中船体/甲板→起火、破帆、编队损失；弹着计算为手感核心。
-- 玩家操控船只机动（转向/增减帆）+ 瞄准发炮；不同舰种（轻帆/炮舰/巨舰）差异化。
-- **对 ActionLayer 接口需求**：`makeRigidBody`、`applyImpulse`（炮弹）、`collision(handler)`、抛物线/风力物理、时间缩放（战斗中慢镜头）。
-- **轻动作补充**：登船肉搏为可选支线（暂缓，不阻塞首版）。
-
----
-
-## 4. 剧情层：自由探索 + 抉择 → 多结局（核心创新）
-
-- **非线性格局**：世界是一张海域图，玩家自由航行；事件按**触发条件/全局状态**在特定海域、特定时机出现（事件池）。
-- **抉择系统**：每次关键事件给出选项，影响全局变量（声望/势力/船员羁绊/信任），累积决定走向与结局。
-- **多结局**：至少 3 条结局线（称王之路 / 和平拓海 / 深藏功与名 等）。
-- **羁绊支线**：每位船员有自己的支线故事，完成改变其台词、能力、结局权重。
-- **对 NarrativeLayer 接口需求**：`choose(optionID)`、全局变量读写、`flag(事件触发条件)`、段落跳转、**事件池/随机触发**、事件→战斗或对话的无缝衔接（bus）。
-- 剧情作者用 **ink** 语法 +（可选用）官方 Inky 编辑器。
+- **Core**: cannons fire via **matter parabolic ballistics**, considering wind / gravity / elevation.
+- Hit a hull/deck → fire, torn sails, crew loss; landing is the feel core.
+- Player maneuvers the ship (turn / raise-lower sails) + aim & fire; different ship types (sloop / galleon / man-of-war).
+- **ActionLayer interface needs**: `makeRigidBody`, `applyImpulse` (cannonball), `collision(handler)`, parabolic/wind physics, time scaling (slow-mo in combat).
+- **Light action extra**: boarding combat as an optional side-quest (deferred, doesn't block v1).
 
 ---
 
-## 5. 语音层：多声线角色（角色先行，声线待定）
+## 4. Narrative Layer: Free Exploration + Choices → Multiple Endings (core innovation)
 
-> 已在选型阶段达成共识：**VoiceLayer 独立自研、依赖无关**，借鉴 `dsh-voice-core` 的
-> **音色目录 / 顺序播队列 / 先文本后朗读** 思路，但接口去 DSH 化。
-
-**配音三模（配合部署约束）**：
-| 模式 | 开发期工具用 | 公开部署 |
-|------|------------|---------|
-| `local-stream` | Mac mini Qwen 实时 | 不用于公开 |
-| `pregen` | — | 固定台词播放预生成音频 |
-| `browser` | — | 动态文本用浏览器 TTS 兜底 |
-
-角色↔声线绑定在**定角色版本后**再填入（见 §7 角色表）。
+- **Non-linear layout**: the world is a sea chart; events appear in specific seas / timings based on **trigger conditions / global state** (event pool).
+- **Choice system**: key events give options that affect global variables (reputation / faction / crew bond / trust); accumulated choices decide direction & ending.
+- **Multiple endings**: at least 3 lines (road to sovereignty / peaceful expansion / retiring from fame, etc.).
+- **Bond side-quests**: each crew member has their own side-story; completing it changes their dialogue, ability, and ending weight.
+- **NarrativeLayer interface needs**: `choose(optionID)`, global var read/write, `flag(event-trigger condition)`, paragraph jump, **event pool / random trigger**, seamless combat-or-dialogue transition (bus).
+- Story authors use **ink** syntax + (optionally) the official Inky editor.
 
 ---
 
-## 6. 对 Saga2D 各层的接口需求清单（引擎收口依据）
+## 5. Voice Layer: Multi-Voice Characters (character-first; voices decided)
 
-| 引擎层 | 本游戏需要的接口 |
-|-------|----------------|
-| Core | `Engine(start)`, `Scene`, 轻ECS(query), 事件总线, Camera/视差, 存档(Save JSON→localStorage), Assets, i18n, 时间缩放 |
-| ActionLayer | 刚体/弹道/碰撞/命中, 船只机动, 时间慢镜 |
-| NarrativeLayer | ink 运行时, 选项面板, 事件池触发, 全局变量/flag, 多结局跳转 |
-| VoiceLayer | `styles`音色目录, `roles.bind(角色→音色)`, `speak/stop/queue`, 三模(模式切换) |
-| Adapter | IRenderer(Phaser), IPhysics(matter), INarrative(inkjs), ITTS(自研) |
+> Consensus from selection phase: **VoiceLayer is self-built and dependency-agnostic**; it borrows
+> `dsh-voice-core`'s **voice catalog / sequential playback queue / show-text-then-speak** ideas, but de-DSH's the interface.
 
----
+**Three voice-source modes (for the deploy constraint):**
+| Mode | Dev-time use | Public deploy |
+|------|--------------|---------------|
+| `local-stream` | Mac mini Qwen real-time | not used publicly |
+| `pregen` | — | play pre-generated audio for fixed lines |
+| `browser` | — | browser TTS fallback for dynamic text |
 
-## 7. 角色表（先行，声线已定）
-
-| 代号 | 定位 | 原型观感 | 声线 | 讲话风格 | 功能 |
-|------|------|---------|------|---------|------|
-| captain | 主角·船长 | 热血行动派领航者 | 🎙 **少年/正太音** | 语速快、行动派、感叹多 | 主操作/主线选择 |
-| navigator | 舵手/引路人 | 活泼话痨向导 | 🎙 **萝莉音** | 卖萌、感叹词、黏人 | 世界观解说、事件引导 |
-| bosun | 水手长/老兵 | 憨厚可靠 | 🎙 **大叔音** | 沙哑、随和、爱讲道理/冷笑话 | 海战指挥 |
-| surgeon | 船医 | 冷静医者 | 🎙 **御姐音** | 沉稳低缓、医嘱式、干练 | 抉择中和、羁绊线 |
-| enemy_galley | 敌方海盗头目 | 狡黠敌手 | 🎙 狡诈/攻气（细化）| 挑衅、玩世不恭 | Boss 对决、主线对手 |
-| + 若干 NPC | 商人/神秘岛老人/遇难者 | — | 各配适当声线 | — | 事件触发者 |
-
-> 声线由"角色个性"反推（少年-萝莉-大叔-御姐-反派），**不是**硬塞。正好覆盖五类音色反差。
+Character↔voice binding is filled in after the character-version is finalized (see §7 table).
 
 ---
 
-## 8. 玩法细化定稿（来自设计讨论）
+## 6. Saga2D Layer Interface Requirements (Engine Focus Basis)
 
-### 8.1 世界地图形态
-- **局部连续 + 区域切换**：每个区域是一片连续可自由航行的海域（**大图滚动相机**，沉浸），区域之间用**段间航行过渡**衔接（控制单海域规模，避免全区无量大导致的爆炸工作量）。
-- 对 ActionLayer 的影响：**大图滚动相机**；Scene 之间用过渡衔接。
-
-### 8.2 海战手感基调
-- **重预判弹道流**：抛物线弧线明显、炮弹沉缓、风速影响大，玩家需**算提前量/风力**。
-- **初版手感参数草案（M1 实测再调）**：
-  - 重力 `g ≈ 380 px/s²`
-  - 基准弹速 `≈ 420 px/s`
-  - 风速影响 `≈ 0~160 px/s²`（顺/逆风改变抛物线对称）
-  - 命中反馈分级：起火 / 破帆减速 / 掉编（船员数）
-
-### 8.3 舰种（3 种，首版）
-| 舰种 | 特性 | 装填间隔 |
-|------|------|:---:|
-| 轻帆 | 快/灵活机动 | 1.2s |
-| 炮舰 | 火力高 | 1.6s |
-| 巨舰 | 血/慢/射程远 | 2.6s |
-
-### 8.4 经济系统（轻量）
-- 引入**贸易 + 补给**：营收用于**升级帆/炮/船**；不引入重度物价/声望复杂度。
-- 节奏收益：介于"纯战斗"与"经营模拟"之间。
+| Engine layer | Interfaces this game needs |
+|--------------|----------------------------|
+| Core | `Engine(start)`, `Scene`, light-ECS(query), event bus, Camera/parallax, Save(JSON→localStorage), Assets, i18n, time scale |
+| ActionLayer | rigid body / ballistics / collision / hit, ship maneuvering, time slow-mo |
+| NarrativeLayer | ink runtime, option panel, event-pool trigger, global vars/flag, multi-ending jump |
+| VoiceLayer | `styles` catalog, `roles.bind(character→voice)`, `speak/stop/queue`, 3-mode switch |
+| Adapter | IRenderer(Phaser), IPhysics(matter), INarrative(inkjs), ITTS(self-built) |
 
 ---
 
-## 9. 待定 / 未决
+## 7. Character Table (voice decided, character-first)
 
-- 最终名中英双语展示（`The Uncharted Sea` / 《未知海域》）如何呈现。
-- 手感参数 v0.1 需 M1 实测校准。
-- 敌手 / NPC 具体声线细化。
-- 经济数值（物价/升级成本）首版只做最小闭环。
+| Code | Role | Prototype vibe | Voice | Speech style | Function |
+|------|------|----------------|-------|--------------|----------|
+| captain | protagonist · captain | fiery action leader | 🎙 **boy/youth voice** | fast-paced, action-driven, many exclamations | main operation / main-line choice |
+| navigator | helmsman / guide | lively chatterer | 🎙 **loli voice** | cute, exclamatory, clingy | world-building expo, event guide |
+| bosun | boatswain / veteran | warm, reliable | 🎙 **middle-aged man voice** | gravelly, easygoing, loves lessons/dry humor | naval command |
+| surgeon | ship doctor | calm healer | 🎙 **cool female voice** | steady low tempo, clinical, brisk | choice mediation, bond side-quest |
+| enemy_galley | pirate captain (rival) | cunning foe | 🎙 sly/assertive (to refine) | taunting, cynical | Boss duel, main-line rival |
+| + some NPCs | merchant / hermit / castaway | — | appropriate per NPC | — | event trigger |
 
----
-
-## 10. 首个可玩 demo（M3 里程碑验收标准）
-
-一个最小闭环，能验证三层都通：
-1. 航行到一片连续海域 → 触发第一个海战事件
-2. 用 **舰炮弹道物理**（matter 曲线）击沉/逼退敌舰
-3. 战后触发 **抉择**（追剿 / 放行 / 招募），改变一个全局 flag
-4. 与至少 1 位船员发生一段 **角色对话并有语音**（本地开发期）
+> Voices are derived from "character personality" (youth-loli-man-cool-villain), **not** forced — which neatly covers a five-way voice contrast.
 
 ---
 
-## 11. 关联文档
+## 8. Refined Gameplay (from design discussions, finalized)
 
-- 引擎设计：`../DESIGN.md`
-- 仓库根 README：`../README.md`
+### 8.1 World-map form
+- **Local-continuous + region switching**: each region is a continuously explorable sea (**large scrollable camera**, immersive); regions connect via **segment-sailing transitions** (controlling per-region scale to avoid unbounded Open-World bulk).
+- ActionLayer impact: **large scrollable camera**; Scenes connect via transitions.
 
-*随游戏与引擎协同演进。*
+### 8.2 Naval-combat feel
+- **Heavy-prediction ballistic flow**: pronounced parabola, slow heavy shells, wind matters a lot — player must **lead the target / account for wind**.
+- **v0.1 feel-param draft (to calibrate in M1):**
+  - gravity `g ≈ 380 px/s²`
+  - base shell speed `≈ 420 px/s`
+  - wind influence `≈ 0~160 px/s²` (head/tail wind alters parabola symmetry)
+  - hit feedback tiers: fire / sail-tear slow / crew loss
+
+### 8.3 Ship types (3, first version)
+| Ship | Trait | Reload interval |
+|------|-------|:---:|
+| Sloop (轻帆) | fast / nimble | 1.2s |
+| Galleon (炮舰) | high firepower | 1.6s |
+| Man-of-war (巨舰) | hp / slow / long range | 2.6s |
+
+### 8.4 Economy (lightweight)
+- Introduce **trade + supplies**: revenue for **upgrading sails / cannons / ship**; no heavy market-price/complexity.
+- Rhythm payoff: between "pure combat" and "management sim".
+
+---
+
+## 9. Open / Pending
+
+- How the final bilingual name is presented (`The Uncharted Sea` / 《未知海域》).
+- v0.1 feel params need M1 calibration.
+- Refine the rival / NPC specific voices.
+- Economy numbers (prices / upgrade cost): v1 only does a minimal loop.
+
+---
+
+## 10. First Playable Demo (M3 milestone acceptance)
+
+A minimal closed loop validating all three layers:
+1. Sail into a continuous sea → trigger the first naval battle event.
+2. Use **cannon ballistic physics** (matter curve) to sink / drive off the enemy.
+3. After battle, trigger a **choice** (chase / let go / recruit), changing one global flag.
+4. Have at least one **character conversation with voice** (local dev phase).
+
+---
+
+## 11. Related Docs
+
+- Engine design: `../DESIGN.md`
+- Repo-root README: `../README.md`
+
+*Evolves with game & engine together.*
