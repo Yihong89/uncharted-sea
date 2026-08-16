@@ -105,6 +105,7 @@ They are interlocked, not two separate mini-modes.
 
 ## 7. Related
 
+- Trade & story loop details: `TRADE-STORY-LOOP.md`
 - Gameplay details & roster: `GAME-01.md`
 - Engine design: `DESIGN.md`
 
