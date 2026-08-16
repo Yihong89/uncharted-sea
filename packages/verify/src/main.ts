@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { Engine, Scene, type SceneContext, Save } from "@saga2d/core";
+import { MapScene } from "./map-scene.js";
 
 const W = 900;
 const H = 600;
@@ -343,7 +344,7 @@ class FireScene extends Phaser.Scene {
 class BootScene extends Scene {
   key = "boot";
   create(ctx: SceneContext) {
-    ctx.bus.emit("game:start", { message: "Saga2D 双模式海战最小演示启动" });
+    ctx.bus.emit("game:start", { message: "Saga2D 地图原型启动" });
   }
   update(_ctx: SceneContext) {}
   destroy(ctx: SceneContext) {
@@ -360,18 +361,15 @@ function bootCore() {
   return engine;
 }
 
-// 初始化 Phaser（含 sail + fire 两个场景）
+// 初始化 Phaser：主场景为「大地图」(1600 东南亚海图 + 贸易)
+// 保留 Sail/Fire 双模式海战 demo 作为可切换的次级验证场景。
 const phaser = new Phaser.Game({
   type: Phaser.AUTO,
   parent: "app",
   width: W,
   height: H,
   backgroundColor: "#0a2a4a",
-  physics: {
-    default: "matter",
-    matter: { gravity: { x: 0, y: 0.5 }, debug: false },
-  },
-  scene: [SailScene, FireScene],
+  scene: [MapScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
