@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { PORTS, MAP_W, MAP_H, START_PORT, ERA, type Port } from "./map-data.js";
-import { SeaLand, projectLatLon } from "./map-render.js";
+import { WorldLand, projectLatLon, WORLD_BBOX } from "./map-render.js";
 
 /**
  * 大地图场景（群岛世界 · 真实东南亚轮廓）
@@ -237,39 +237,39 @@ export class MapScene extends Phaser.Scene {
 
   // ---- 渲染：海图 ----
   private makeSea() {
-    // 羊皮纸海（复古海图底色）
+    // 羊皮纸海（复古海图底色，铺满整个世界）
     const g = this.add.graphics().setDepth(-10);
     g.fillStyle(0xcfe0d8, 1); // 浅海纸色
     g.fillRect(0, 0, MAP_W, MAP_H);
-    // 经纬网（淡线）
-    g.lineStyle(1, 0x8a9a8a, 0.2);
-    for (let gx = 0; gx < MAP_W; gx += 120) {
+    // 经纬网（淡线，全球）
+    g.lineStyle(1, 0x8a9a8a, 0.18);
+    for (let gx = 0; gx < MAP_W; gx += 220) {
       g.beginPath();
       g.moveTo(gx, 0);
       g.lineTo(gx, MAP_H);
       g.strokePath();
     }
-    for (let gy = 0; gy < MAP_H; gy += 120) {
+    for (let gy = 0; gy < MAP_H; gy += 96) {
       g.beginPath();
       g.moveTo(0, gy);
       g.lineTo(MAP_W, gy);
       g.strokePath();
     }
-    // 罗盘风线
-    SeaLand.drawOceanDecoration(g, MAP_W, MAP_H);
+    // 罗盘风线（居中东亚海域）
+    const cx = projectLatLon(130, 20, MAP_W, MAP_H);
+    WorldLand.drawOceanDecoration(g, cx.x, cx.y, Math.max(MAP_W, MAP_H) * 0.6);
   }
 
-  /** 用公域 Natural Earth 数据渲染真实东亚-东南亚轮廓（复古航海图风） */
+  /** 用公域 Natural Earth 数据生成完整世界陆地纹理（复古航海图风） */
   private drawRealLand() {
     const json = this.cache.json.get("sea-land") as object;
-    const seaLand = new SeaLand(json, MAP_W, MAP_H);
-    const g = this.add.graphics().setDepth(-9);
-    seaLand.draw(g, {
-      parchment: 0xd8c79a,
-      coast: 0x7a6a3a,
-      inland: 0x9a7a4a,
+    const world = new WorldLand(json, MAP_W, MAP_H);
+    world.toPhaserKey(this, "worldland", MAP_W, MAP_H, {
+      landRGB: [216, 199, 154],
+      coast: "rgba(122,106,58,0.9)",
     });
-    console.log(`SeaLand: 渲染 ${seaLand.polygonCount} 个陆地多边形`);
+    this.add.image(0, 0, "worldland").setOrigin(0).setDepth(-9);
+    console.log(`WorldLand: 渲染 ${world.shapeCount} 块陆地`);
   }
 
   private makePortMarks() {

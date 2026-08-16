@@ -208,6 +208,6 @@ export const PORTS: Port[] = [
 /** 起始港 */
 export const START_PORT = PORTS.find((p) => p.isStart)!;
 
-/** 世界尺寸（地图逻辑坐标）。投影会按此像素铺满东亚-东南亚 bbox */
-export const MAP_W = 1500;
-export const MAP_H = 1550;
+/** 世界尺寸（地图逻辑坐标）。完整世界地图按比例投影 */
+export const MAP_W = 2200;
+export const MAP_H = 960;
