@@ -1,8 +1,8 @@
 # 未知海域 The Uncharted Sea — 玩法与引擎需求方案（v0.1）
 
-> 引擎 Folklore 的**第一个游戏**（M3「游戏驱动」样板）。
+> 引擎 Saga2D 的**第一个游戏**（M3「游戏驱动」样板）。
 > 目标：一个**动作 + 剧情 + 多角色语音 三均衡**的航海群像冒险，
-> 端到端验证 Folklore 的 ActionLayer / NarrativeLayer / VoiceLayer 三层接口。
+> 端到端验证 Saga2D 的 ActionLayer / NarrativeLayer / VoiceLayer 三层接口。
 
 ---
 
@@ -14,7 +14,7 @@
 - 工作名：**未知海域 The Uncharted Sea**
 - 类型：航海冒险（自由探索 + 舰炮海战 + 群像剧情 + 抉择结局）
 - 平台：Web（GitHub Pages 纯静态）
-- 引擎：Folklore（本轮是其首个验证用例）
+- 引擎：Saga2D（本轮是其首个验证用例）
 
 ---
 
@@ -87,7 +87,7 @@
 
 ---
 
-## 6. 对 Folklore 各层的接口需求清单（引擎收口依据）
+## 6. 对 Saga2D 各层的接口需求清单（引擎收口依据）
 
 | 引擎层 | 本游戏需要的接口 |
 |-------|----------------|

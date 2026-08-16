@@ -1,6 +1,6 @@
-# Folklore — 引擎设计文档（v0.1 草案）
+# Saga2D — 引擎设计文档（v0.1 草案）
 
-> 本档是 Folklore（工作名，叙事寓意）通用 2D HTML5 引擎的**工程蓝图**。
+> 本档是 **Saga2D**（传奇叙事 Saga + 2D）通用 2D HTML5 引擎的**工程蓝图**。
 > 读者：未来的协作者、使用引擎做游戏的开发者、以及"造福后人"的维护者。
 > 状态：**草案**，随第一个游戏驱动迭代而修订。
 
@@ -12,7 +12,7 @@
 Phaser、matter-js、ink、TTS 四套东西重新粘一遍。
 
 **边界（重要，防止失控）**：
-- Folklore 是**上层整合引擎**，不重造渲染/物理/叙事/合成这些底层轮子。
+- Saga2D 是**上层整合引擎**，不重造渲染/物理/叙事/合成这些底层轮子。
 - 引擎核心（Core）力求**通用**；动作/剧情/语音是**可插拔上层（Layer）**。
 - 一切能力**由真实游戏驱动验证**，杜绝"纯搭框架"。
 - 部署目标是 **GitHub Pages 等纯静态托管** → 引擎**不引入任何需要后端的实时云依赖**。
@@ -30,6 +30,7 @@ Phaser、matter-js、ink、TTS 四套东西重新粘一遍。
 | 叙事脚本 | **ink**（+ **inkjs** 浏览器运行时） | MIT | 分支/变量/事件/段落跳转 |
 | 语音合成 | **Qwen3-TTS**（本地，参考音色克隆） | （Qwen 系开放） | 通过自研 VoiceLayer 包一层 |
 | 音频播放 | WebAudio + `<audio>` | — | 浏览器原生 |
+| 语言/工程 | **TypeScript + pnpm mono-repo** | MIT | 类型安全；分包 core/action/narrative/voice |
 
 > **不选为底层**：任何 DSH 专属库（如 `dsh-voice-core`）。它思路可借鉴、接口不可复用（见 §4.3）。
 
@@ -39,7 +40,7 @@ Phaser、matter-js、ink、TTS 四套东西重新粘一遍。
 
 ```
                 ┌──────────────────────────────────────────┐
-                │                  Folklore                 │
+                │                  Saga2D                  │
                 ├──────────────────────────────────────────┤
   可插拔上层     │  ActionLayer   动作/战斗/物理手感         │
   (按游戏按需)   │  NarrativeLayer 剧情/分支/角色/事件(ink)  │
@@ -98,7 +99,7 @@ Core 是引擎"通用"与"不过度设计"的交点。它不管"你玩的是什�
 
 ### 4.2 NarrativeLayer（剧情）
 - 基于 **ink/inkjs**：它已解决分支/变量/条件/事件触发。
-- Folklore 在这层补：**UI 演出**——打字机、立绘、角色名框、字幕、选项面板。
+- Saga2D 在这层补：**UI 演出**——打字机、立绘、角色名框、字幕、选项面板。
 - 与 ActionLayer 的桥：ink 的 `{{}}`/标签可发 `game:` 事件触发战斗、切场景、加好感。
 - （借鉴 ink 官方的 Inky 编辑器生态，剧情作者可视化物件。）
 
@@ -111,7 +112,7 @@ Core 是引擎"通用"与"不过度设计"的交点。它不管"你玩的是什�
 - **先显示文本、再朗读**：贴合"字幕 + 语音"演出。
 - **角色→音色绑定**：每个角色固定一个 instruct/参考音频。
 
-**Folklore VoiceLayer 自己的接口（去 DSH 化）**：
+**Saga2D VoiceLayer 自己的接口（去 DSH 化）**：
 ```js
 voice.styles.add('loli', { instruct: "…撒娇萝莉音…", refAudio: "assets/ref/loli.wav", lang:'zh' })
 voice.roles.bind('npc_mei', 'loli')        // 角色绑定音色
@@ -155,19 +156,17 @@ Core/Layer **只依赖抽象接口**，不依赖具体库：
 
 ---
 
-## 6. 命名（叙事寓意候选）
+## 6. 命名
 
-工作名 **Folklore**；给后人做搜索引擎/文档时，需要好记、不撞车。备选：
+**已定稿：Saga2D**（「Saga 传奇/长篇叙事 + 2D」）。已评估过并因撞车/缺乏区分度而**否决**：Folklore（npm/GitHub 均有同名）、web-engine（GitHub 2.7 万结果）、saga / fable（npm 被占）。
 
-| 候选 | 含义 | 备注 |
-|------|------|------|
-| **Folklore** | 民间传说 | 首选，叙事感强、好记 |
-| Saga | 传奇长篇 | 简洁，但命名空间可能撞 |
-| Fable | 寓言 | 清晰、儿童友好 |
-| Inktell | ink+story | 语法上呼应 ink |
-| Talebound | 故事绑定 | 突出剧本驱动 |
+| 候选 | 结论 |
+|------|------|
+| **Saga2D** | ✅ 定稿：独特、好记、体现叙事+引擎 |
+| inktell | 备选（呼应 ink），未采用 |
+| web-engine / Folklore / saga / fable | ❌ 否决（撞车/太泛） |
 
-> 正式发布前在 npm/GitHub 查重后定稿。
+> 正式发布前对 npm / GitHub org 名做最终查重。
 
 ---
 
@@ -189,7 +188,7 @@ Core/Layer **只依赖抽象接口**，不依赖具体库：
 ## 8. 目录规划（建议）
 
 ```
-folklore/
+saga2d/   （或 monorepo 根）
 ├─ docs/           # 设计文档、决策记录(ADR)
 ├─ packages/
 │  ├─ core/        # 引擎核心(Scene/ECS/Bus/Input/Camera/Save/Assets)
@@ -198,7 +197,7 @@ folklore/
 │  └─ layer-voice/   # 语音层(自研,TTS三模)
 │  └─ adapter-*     # Render/Physics 等适配实现
 ├─ games/          # 用引擎做的游戏(每个一个独立子目录)
-│  └─ <first-game>/
+│  └─ uncharted-sea/  # 《未知海域》
 ├─ examples/       # 每个模块的最小可跑示例
 └─ README.md
 ```
@@ -211,12 +210,14 @@ folklore/
 - 用 Phaser 底座 + matter-js + inkjs，不自造底层。
 - VoiceLayer **自研、依赖无关**；`dsh-voice-core` 仅作思路参考。
 - 纯静态部署；语音公开部署用 pregen / browser 兜底。
+- 引擎名 **Saga2D**；语言 **TypeScript**；工程 **pnpm mono-repo**。
+- 第一个游戏：《未知海域 The Uncharted Sea》（航海群像，见 `GAME-01.md`）。
 
-**未决**
-- 引擎最终名（npm/GitHub 查重后定）。
-- Core 是否用 TS 还是 JS（与 Phaser TS 生态衔接 / 或用 JS 减依赖）。→ 倾向 TS。
-- mono-repo（pnpm workspaces） vs 单包。
-- 第一个游戏的具体题材与玩法（M3 前敲定）。
+**未决 / 待定**
+- 引擎包名由 npm/GitHub org 查重最终锁定。
+- 舰炮战手感参数、世界地图形态（瓦片海图 vs 连续）→ M1/M2 实测。
+- 完整角色名单与声线映射（定角色版本后补）。
+- 是否引入经济系统（贸易/补给）。
 
 ---
 
