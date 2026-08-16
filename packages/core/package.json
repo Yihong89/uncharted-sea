@@ -1,0 +1,25 @@
+{
+  "name": "@saga2d/core",
+  "version": "0.1.0",
+  "description": "Saga2D 引擎核心 — 场景/ECS/事件总线/输入/相机/存档/资源",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "phaser": "^3.80.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}
