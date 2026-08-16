@@ -1,9 +1,10 @@
 import Phaser from "phaser";
 import { PORTS, MAP_W, MAP_H, START_PORT, ERA, type Port } from "./map-data.js";
+import { SeaLand, projectLatLon } from "./map-render.js";
 
 /**
- * 大地图场景（1600 东南亚海图）
- *  - 俯视海面 + 陆地/岛屿
+ * 大地图场景（群岛世界 · 真实东南亚轮廓）
+ *  - 用公域 Natural Earth 数据 1:1 渲染真实陆地轮廓（航海图风）
  *  - 港口标记（名 / 特产）
  *  - 船自由航行(WSAD/方向键) 或 点选港口自动导航
  *  - 靠岸 → 贸易 UI（可买卖，验证差价循环）
@@ -31,14 +32,20 @@ export class MapScene extends Phaser.Scene {
     super("map");
   }
 
+  preload() {
+    this.load.json("sea-land", "countries-110m.json");
+  }
+
   create() {
-    this.makeMap();
+    this.makeSea(); // 深蓝海 + 经纬网
+    this.drawRealLand(); // 公域真实轮廓
     this.makeShipTexture();
     this.makePortMarks();
 
     // 船初始在新加坡位
     const sp = START_PORT;
-    this.ship = { x: sp.x * MAP_W, y: sp.y * MAP_H, vx: 0, vy: 0 };
+    const sp0 = projectLatLon(sp.lon, sp.lat, MAP_W, MAP_H);
+    this.ship = { x: sp0.x, y: sp0.y, vx: 0, vy: 0 };
     this.shipView = this.add.container(this.ship.x, this.ship.y, [
       this.add.ellipse(2, 8, 28, 10, 0x003311, 0.25),
       this.add.image(0, 0, "boat"),
@@ -229,33 +236,13 @@ export class MapScene extends Phaser.Scene {
   }
 
   // ---- 渲染：海图 ----
-  private makeMap() {
-    // 海（外层深蓝）
-    const sea = this.add.graphics().setDepth(-10);
-    sea.fillGradientStyle(0x072338, 0x0a3a5a, 0x0a3a5a, 0x0d4666, 1);
-    sea.fillRect(0, 0, MAP_W, MAP_H);
-
-    // 程序化陆地/岛屿（用噪波式圆形分布）
-    const g = this.add.graphics().setDepth(-9);
-    const islands = [
-      // 苏门答腊 / 马来半岛 / 婆罗洲 / 爪哇 等示意
-      { x: 0.32, y: 0.5, w: 180, h: 300, a: 0.5 },
-      { x: 0.5, y: 0.35, w: 120, h: 60, a: 0.3 },
-      { x: 0.44, y: 0.8, w: 150, h: 70, a: 0.2 },
-      { x: 0.62, y: 0.72, w: 120, h: 90, a: 0.4 },
-      { x: 0.8, y: 0.42, w: 90, h: 160, a: 0.3 },
-      { x: 0.93, y: 0.2, w: 70, h: 90, a: 0.3 },
-      { x: 0.22, y: 0.3, w: 110, h: 80, a: 0.3 },
-      { x: 0.58, y: 0.25, w: 60, h: 40, a: 0.2 },
-    ];
-    for (const is of islands) {
-      g.fillStyle(0x1b3a24, 1);
-      g.fillEllipse(is.x * MAP_W, is.y * MAP_H, is.w, is.h);
-      g.fillStyle(0x2c5630, 1);
-      g.fillEllipse(is.x * MAP_W, is.y * MAP_H, is.w * 0.7, is.h * 0.6);
-    }
-    // 经纬网格（航海图感）
-    g.lineStyle(1, 0x2a5a7a, 0.18);
+  private makeSea() {
+    const g = this.add.graphics().setDepth(-10);
+    // 深海底色
+    g.fillStyle(0x0a3a5a, 1);
+    g.fillRect(0, 0, MAP_W, MAP_H);
+    // 经纬网（航海图感）
+    g.lineStyle(1, 0x2a5a7a, 0.22);
     for (let gx = 0; gx < MAP_W; gx += 100) {
       g.beginPath();
       g.moveTo(gx, 0);
@@ -268,6 +255,19 @@ export class MapScene extends Phaser.Scene {
       g.lineTo(MAP_W, gy);
       g.strokePath();
     }
+  }
+
+  /** 用公域 Natural Earth 数据渲染真实东南亚轮廓（航海图风：浅陆 + 海岸线） */
+  private drawRealLand() {
+    const json = this.cache.json.get("sea-land") as object;
+    const seaLand = new SeaLand(json, MAP_W, MAP_H);
+    const g = this.add.graphics().setDepth(-9);
+    // 先铺海（若 SEA bbox 未铺满，深蓝兜底）
+    g.fillStyle(0x0a3a5a, 1);
+    g.fillRect(0, 0, MAP_W, MAP_H);
+    // 陆地填充 + 海岸线
+    seaLand.draw(g, 0x2c5630, 0x5a9360);
+    console.log(`SeaLand: 渲染 ${seaLand.polygonCount} 个陆地多边形`);
   }
 
   private makePortMarks() {
@@ -364,9 +364,9 @@ interface KeyboardKeys {
   space: Phaser.Input.Keyboard.Key;
 }
 
-/** 港口比例坐标 → 世界坐标 */
+/** 港口经纬度 → 世界坐标（与真实地图轮廓同一投影） */
 function portPoint(p: Port): { x: number; y: number } {
-  return { x: p.x * MAP_W, y: p.y * MAP_H };
+  return projectLatLon(p.lon, p.lat, MAP_W, MAP_H);
 }
 
 interface MapShip {
