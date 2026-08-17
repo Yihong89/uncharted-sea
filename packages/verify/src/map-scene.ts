@@ -27,6 +27,11 @@ export class MapScene extends Phaser.Scene {
   private hold: ShipHold = { goods: {}, gold: 500 };
   private docked: Port | null = null;
   private camShake = 0;
+  private followingShip = true; // 相机是否跟随船
+  private dragging = false;
+  private dragStart = { x: 0, y: 0 };
+  private dragMoved = 0;
+  private panPointer: Phaser.Input.Pointer | null = null;
 
   constructor() {
     super("map");
@@ -59,28 +64,8 @@ export class MapScene extends Phaser.Scene {
 
     // 键盘
     this.initKeys();
-    // 点击港口导航
-    this.input.on("pointerdown", (p: Phaser.Input.Pointer) => {
-      const wx = this.ship.x;
-      const wy = this.ship.y;
-      void wx;
-      void wy;
-      // 找最近的港口（用世界坐标接近）
-      const worldPos = this.cameras.main.getWorldPoint(p.x, p.y);
-      let best: Port | null = null;
-      let bestD = 70; // 点击容忍距离
-      for (const port of PORTS) {
-        const pp = portPoint(port);
-        const d = Phaser.Math.Distance.Between(worldPos.x, worldPos.y, pp.x, pp.y);
-        if (d < bestD) {
-          bestD = d;
-          best = port;
-        }
-      }
-      if (best) {
-        this.autoNavigate(best);
-      }
-    });
+    // 视角缩放 / 平移 / 点选港口
+    this.setupViewControls();
 
     // HUD
     this.uiText = this.add
@@ -347,7 +332,94 @@ export class MapScene extends Phaser.Scene {
     });
     k.on("keydown-SPACE", () => {
       this.autoTarget = null; // 取消导航
+      this.returnToShip(); // 视角回到跟随船
     });
+    k.on("keydown-ENTER", () => this.returnToShip());
+  }
+
+  /** 视角控制：滚轮缩放 + 左键拖拽平移；不拖拽的点击仍是"选港口导航" */
+  private setupViewControls() {
+    const cam = this.cameras.main;
+    cam.setZoom(0.7);
+    cam.setBounds(0, 0, MAP_W, MAP_H);
+
+    // 滚轮缩放：绑定原生 DOM wheel 到 canvas（Phaser InputPlugin 的 wheelDeltaY 不可靠）
+    this.game.canvas.addEventListener(
+      "wheel",
+      (e: WheelEvent) => {
+        e.preventDefault();
+        const dy = e.deltaY;
+        this.detachFromShip();
+        const next = Phaser.Math.Clamp(cam.zoom * (dy > 0 ? 0.82 : 1.2), 0.3, 2.5);
+        cam.setZoom(next);
+        cam.scrollX = Phaser.Math.Clamp(cam.scrollX, 0, MAP_W - cam.width / next);
+        cam.scrollY = Phaser.Math.Clamp(cam.scrollY, 0, MAP_H - cam.height / next);
+      },
+      { passive: false }
+    );
+
+    // 左键按住移动 = 拖拽平移
+    this.input.on("pointerdown", (p: Phaser.Input.Pointer) => {
+      if (p.leftButtonDown()) {
+        this.panPointer = p;
+        this.dragStart = { x: p.x, y: p.y };
+        this.dragMoved = 0;
+      }
+    });
+    this.input.on("pointermove", (p: Phaser.Input.Pointer) => {
+      if (this.panPointer === p && p.isDown) {
+        this.dragMoved += Math.hypot(p.x - this.dragStart.x, p.y - this.dragStart.y);
+        if (this.dragMoved > 5) {
+          this.detachFromShip();
+          cam.scrollX -= p.velocity.x / cam.zoom;
+          cam.scrollY -= p.velocity.y / cam.zoom;
+          cam.scrollX = Phaser.Math.Clamp(cam.scrollX, 0, MAP_W - cam.width / cam.zoom);
+          cam.scrollY = Phaser.Math.Clamp(cam.scrollY, 0, MAP_H - cam.height / cam.zoom);
+        }
+        this.dragStart = { x: p.x, y: p.y };
+      }
+    });
+    this.input.on("pointerup", (p: Phaser.Input.Pointer) => {
+      if (this.panPointer === p) {
+        this.panPointer = null;
+        const wasDrag = this.dragMoved > 5;
+        this.dragMoved = 0;
+        // 未拖拽 = 当作点击选港口
+        if (!wasDrag && this.docked === null) {
+          this.trySelectPort(p);
+        }
+      }
+    });
+  }
+
+  /** 从跟随船模式进入自由视角 */
+  private detachFromShip() {
+    if (this.followingShip) {
+      this.cameras.main.stopFollow();
+      this.followingShip = false;
+    }
+  }
+
+  /** 视角回到跟随船 */
+  private returnToShip() {
+    this.cameras.main.startFollow(this.shipView, true, 0.08, 0.08);
+    this.followingShip = true;
+  }
+
+  /** 点击世界坐标选最近港口出发 */
+  private trySelectPort(p: Phaser.Input.Pointer) {
+    const worldPos = this.cameras.main.getWorldPoint(p.x, p.y);
+    let best: Port | null = null;
+    let bestD = 70;
+    for (const port of PORTS) {
+      const pp = portPoint(port);
+      const d = Phaser.Math.Distance.Between(worldPos.x, worldPos.y, pp.x, pp.y);
+      if (d < bestD) {
+        bestD = d;
+        best = port;
+      }
+    }
+    if (best) this.autoNavigate(best);
   }
 }
 
