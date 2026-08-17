@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saga2D · 最小验证</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0b1622;
+        font-family: system-ui, sans-serif;
+        color: #cfe4ff;
+        overflow: hidden;
+      }
+      #hint {
+        position: fixed;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(11, 22, 34, 0.85);
+        border: 1px solid #2e4a66;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        z-index: 10;
+      }
+    </style>
+    <script type="module" crossorigin src="./assets/index-YWtj7Mh2.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="hint">按住鼠标拖拽瞄准 · 松开发射炮弹（matter 抛物线物理）· 点击水面调船身</div>
+  </body>
+</html>
